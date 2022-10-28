@@ -8,6 +8,7 @@ package gomp
 import (
 	"image"
 	"image/color"
+	"math"
 
 	"github.com/esimov/gomp/utils"
 )
@@ -178,8 +179,9 @@ func (op *Composite) Draw(bitmap *Bitmap, src, dst *image.NRGBA, blend *Blend) {
 
 				// applying the blending mode
 				if blend != nil {
-					r1, g1, b1, a1 = bitmap.Img.At(x, y).RGBA()
-					r2, g2, b2, a2 = src.At(x, y).RGBA()
+					rn, gn, bn, an = 0, 0, 0, 0 // reset the colors
+					r1, g1, b1, a1 = src.At(x, y).RGBA()
+					r2, g2, b2, a2 = dst.At(x, y).RGBA()
 
 					rs, gs, bs, as = r1>>8, g1>>8, b1>>8, a1>>8
 					rb, gb, bb, ab = r2>>8, g2>>8, b2>>8, a2>>8
@@ -188,12 +190,13 @@ func (op *Composite) Draw(bitmap *Bitmap, src, dst *image.NRGBA, blend *Blend) {
 					gsn = float64(gs) / 255
 					bsn = float64(bs) / 255
 					asn = float64(as) / 255
+
 					rbn = float64(rb) / 255
 					gbn = float64(gb) / 255
 					bbn = float64(bb) / 255
 					abn = float64(ab) / 255
 
-					switch blend.OpType {
+					switch blend.Mode {
 					case Darken:
 						rn = utils.Min(rsn, rbn)
 						gn = utils.Min(gsn, gbn)
@@ -220,20 +223,183 @@ func (op *Composite) Draw(bitmap *Bitmap, src, dst *image.NRGBA, blend *Blend) {
 						} else {
 							rn = 1 - 2*(1-rsn)*(1-rbn)
 						}
+
 						if gsn <= 0.5 {
 							gn = 2 * gsn * gbn
 						} else {
 							gn = 1 - 2*(1-gsn)*(1-gbn)
 						}
+
 						if bsn <= 0.5 {
 							bn = 2 * bsn * bbn
 						} else {
 							bn = 1 - 2*(1-bsn)*(1-bbn)
 						}
+
 						if asn <= 0.5 {
 							an = 2 * asn * abn
 						} else {
 							an = 1 - 2*(1-asn)*(1-abn)
+						}
+					case SoftLight:
+						if rbn < 0.5 {
+							rn = rsn - (1-2*rbn)*rsn*(1-rsn)
+						} else {
+							var w3r float64
+							if rsn < 0.25 {
+								w3r = ((16*rsn-12)*rsn + 4) * rsn
+							} else {
+								w3r = math.Sqrt(rsn)
+							}
+							rn = rsn + (2*rbn-1)*(w3r-rsn)
+						}
+
+						if gbn < 0.5 {
+							gn = gsn - (1-2*gbn)*gsn*(1-gsn)
+						} else {
+							var w3g float64
+							if gsn < 0.25 {
+								w3g = ((16*gsn-12)*gsn + 4) * gsn
+							} else {
+								w3g = math.Sqrt(gsn)
+							}
+							gn = gsn + (2*gbn-1)*(w3g-gsn)
+						}
+
+						if bbn < 0.5 {
+							bn = bsn - (1-2*bbn)*bsn*(1-bsn)
+						} else {
+							var w3b float64
+							if bsn < 0.25 {
+								w3b = ((16*bsn-12)*bsn + 4) * bsn
+							} else {
+								w3b = math.Sqrt(bsn)
+							}
+							bn = bsn + (2*bbn-1)*(w3b-bsn)
+						}
+
+						if abn < 0.5 {
+							an = asn - (1-2*abn)*asn*(1-asn)
+						} else {
+							var w3a float64
+							if asn < 0.25 {
+								w3a = ((16*asn-12)*asn + 4) * asn
+							} else {
+								w3a = math.Sqrt(asn)
+							}
+							an = asn + (2*abn-1)*(w3a-asn)
+						}
+					case HardLight:
+						if rbn < 0.5 {
+							rn = rbn - (1-2*rsn)*rbn*(1-rbn)
+						} else {
+							var w3r float64
+							if rbn < 0.25 {
+								w3r = ((16*rbn-12)*rbn + 4) * rbn
+							} else {
+								w3r = math.Sqrt(rbn)
+							}
+							rn = rbn + (2*rsn-1)*(w3r-rbn)
+						}
+
+						if gbn < 0.5 {
+							gn = gbn - (1-2*gsn)*gbn*(1-gbn)
+						} else {
+							var w3g float64
+							if gbn < 0.25 {
+								w3g = ((16*gbn-12)*gbn + 4) * gbn
+							} else {
+								w3g = math.Sqrt(gbn)
+							}
+							gn = gbn + (2*gsn-1)*(w3g-gbn)
+						}
+
+						if bbn < 0.5 {
+							bn = bbn - (1-2*bsn)*bbn*(1-bbn)
+						} else {
+							var w3b float64
+							if bbn < 0.25 {
+								w3b = ((16*bbn-12)*bbn + 4) * bbn
+							} else {
+								w3b = math.Sqrt(bbn)
+							}
+							bn = bbn + (2*bsn-1)*(w3b-bbn)
+						}
+
+						if abn < 0.5 {
+							an = abn - (1-2*asn)*abn*(1-abn)
+						} else {
+							var w3a float64
+							if abn < 0.25 {
+								w3a = ((16*abn-12)*abn + 4) * abn
+							} else {
+								w3a = math.Sqrt(abn)
+							}
+							an = abn + (2*asn-1)*(w3a-abn)
+						}
+					case ColorDodge:
+						if rbn == 0 {
+							rn = 0
+						} else if rsn == 1 {
+							rn = 1
+						} else {
+							rn = utils.Min(1, rbn/(1-rsn))
+						}
+
+						if gbn == 0 {
+							gn = 0
+						} else if gsn == 1 {
+							gn = 1
+						} else {
+							gn = utils.Min(1, gbn/(1-gsn))
+						}
+
+						if bbn == 0 {
+							bn = 0
+						} else if bsn == 1 {
+							bn = 1
+						} else {
+							bn = utils.Min(1, bbn/(1-bsn))
+						}
+
+						if abn == 0 {
+							an = 0
+						} else if asn == 1 {
+							an = 1
+						} else {
+							an = utils.Min(1, abn/(1-asn))
+						}
+					case ColorBurn:
+						if rbn == 1 {
+							rn = 1
+						} else if rsn == 0 {
+							rn = 0
+						} else {
+							rn = 1 - utils.Min(1, (1-rbn)/rsn)
+						}
+
+						if gbn == 1 {
+							gn = 1
+						} else if gsn == 0 {
+							gn = 0
+						} else {
+							gn = 1 - utils.Min(1, (1-gbn)/gsn)
+						}
+
+						if bbn == 1 {
+							bn = 1
+						} else if bsn == 0 {
+							bn = 0
+						} else {
+							bn = 1 - utils.Min(1, (1-bbn)/bsn)
+						}
+
+						if abn == 1 {
+							an = 1
+						} else if asn == 0 {
+							an = 0
+						} else {
+							an = 1 - utils.Min(1, (1-abn)/asn)
 						}
 					}
 				}

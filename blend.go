@@ -8,36 +8,51 @@ package gomp
 import "github.com/esimov/gomp/utils"
 
 const (
-	Darken   = "darken"
-	Lighten  = "lighten"
-	Multiply = "multiply"
-	Screen   = "screen"
-	Overlay  = "overlay"
+	Darken     = "darken"
+	Lighten    = "lighten"
+	Multiply   = "multiply"
+	Screen     = "screen"
+	Overlay    = "overlay"
+	SoftLight  = "soft_light"
+	HardLight  = "hard_light"
+	ColorDodge = "color_dodge"
+	ColorBurn  = "color_burn"
 )
 
 // Blend holds the currently active blend mode.
 type Blend struct {
-	OpType string
+	Mode  string
+	Modes []string
 }
 
 // NewBlend initializes a new Blend.
 func NewBlend() *Blend {
-	return &Blend{}
+	return &Blend{
+		Modes: []string{
+			Darken,
+			Lighten,
+			Multiply,
+			Screen,
+			Overlay,
+			SoftLight,
+			HardLight,
+			ColorDodge,
+			ColorBurn,
+		},
+	}
 }
 
 // Set activate one of the supported blend mode.
-func (o *Blend) Set(opType string) {
-	bModes := []string{Darken, Lighten, Multiply, Screen, Overlay}
-
-	if utils.Contains(bModes, opType) {
-		o.OpType = opType
+func (b *Blend) Set(blendType string) {
+	if utils.Contains(b.Modes, blendType) {
+		b.Mode = blendType
 	}
 }
 
 // Get returns the currently active blend mode.
-func (o *Blend) Get() string {
-	if len(o.OpType) > 0 {
-		return o.OpType
+func (b *Blend) Get() string {
+	if len(b.Mode) > 0 {
+		return b.Mode
 	}
 	return ""
 }
