@@ -84,7 +84,7 @@ func main() {
 		strw, _ := dc.MeasureString(op)
 		dc.DrawImage(bmp.Img, gridX, gridY)
 		dc.DrawRectangle(float64(gridX), float64(gridY), float64(gridX+size), float64(gridY+size))
-		dc.SetRGB(0.6, 0.6, 0.6)
+		dc.SetRGB(1, 1, 1)
 		dc.Stroke()
 
 		dc.SetRGB(1, 1, 1)
@@ -95,6 +95,6 @@ func main() {
 	}
 
 	finalImg := dc.Image()
-	output, _ := os.Create("output2.png")
+	output, _ := os.Create("blend.png")
 	png.Encode(output, finalImg)
 }

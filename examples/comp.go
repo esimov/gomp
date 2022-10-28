@@ -13,34 +13,24 @@ import (
 )
 
 func main() {
-	in, err := os.Open("src.png")
-	if err != nil {
-		log.Fatalf("cannot open the source file: %s", err)
-	}
-
-	out, err := os.Open("dst.png")
-	if err != nil {
-		log.Fatalf("cannot open the destination file: %s", err)
-	}
-
-	src, err := png.Decode(in)
-	if err != nil {
-		log.Fatalf("cannot decode the source image: %s", err)
-	}
-
-	dst, err := png.Decode(out)
-	if err != nil {
-		log.Fatalf("cannot decode the destination image: %s", err)
-	}
-	srcImg := gomp.ImgToNRGBA(src)
-	dstImg := gomp.ImgToNRGBA(dst)
-
 	imop := gomp.InitOp()
 	dc := gg.NewContext(1024, 768)
 	dc.Clear()
 	dc.SetRGB(1, 1, 1)
 	dc.DrawRectangle(0, 0, 1024, 768)
 	dc.Fill()
+
+	src := gg.NewContext(256, 256)
+	src.DrawRectangle(15, 95, 145, 145)
+	src.SetHexColor("#2196f3")
+	src.Fill()
+	srcImg := gomp.ImgToNRGBA(src.Image())
+
+	dst := gg.NewContext(256, 256)
+	dst.DrawCircle(165, 95, 75)
+	dst.SetHexColor("#e91e63")
+	dst.Fill()
+	dstImg := gomp.ImgToNRGBA(dst.Image())
 
 	font, err := truetype.Parse(goregular.TTF)
 	if err != nil {
@@ -67,9 +57,9 @@ func main() {
 		for x := gridX; x < gridX+size; x += cellSize {
 			for y := gridY; y < gridY+size; y += cellSize {
 				if (i+j)%2 == 0 {
-					dc.SetHexColor("dedede")
+					dc.SetHexColor("#dedede")
 				} else {
-					dc.SetHexColor("f3f3f3")
+					dc.SetHexColor("#f3f3f3")
 				}
 				dc.DrawRectangle(float64(x), float64(y), float64(cellSize), float64(cellSize))
 				dc.Fill()
@@ -96,6 +86,6 @@ func main() {
 	}
 
 	finalImg := dc.Image()
-	output, _ := os.Create("output.png")
+	output, _ := os.Create("composite.png")
 	png.Encode(output, finalImg)
 }
