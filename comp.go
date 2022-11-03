@@ -34,8 +34,8 @@ type Bitmap struct {
 	Img *image.NRGBA
 }
 
-// Composite defines a struct with the active and all the supported composition operations.
-type Composite struct {
+// Comp defines a struct with the active and all the supported composition operations.
+type Comp struct {
 	CurrentOp string
 	Ops       []string
 }
@@ -48,8 +48,8 @@ func NewBitmap(rect image.Rectangle) *Bitmap {
 }
 
 // InitOp initializes a new composition operation.
-func InitOp() *Composite {
-	return &Composite{
+func InitOp() *Comp {
+	return &Comp{
 		CurrentOp: Copy,
 		Ops: []string{
 			Clear,
@@ -69,14 +69,14 @@ func InitOp() *Composite {
 }
 
 // Set changes the current composition operation.
-func (op *Composite) Set(cop string) {
+func (op *Comp) Set(cop string) {
 	op.CurrentOp = cop
 }
 
 // Draw applies the currently active Ported-Duff composition operation formula,
 // taking as parameter the source and the destination image and draws the result into the bitmap.
 // If a blend mode is activated it will plug in the alpha blending formula also into the equation.
-func (op *Composite) Draw(bitmap *Bitmap, src, dst *image.NRGBA, blend *Blend) {
+func (op *Comp) Draw(bitmap *Bitmap, src, dst *image.NRGBA, bl *Blend) {
 	dx, dy := src.Bounds().Dx(), src.Bounds().Dy()
 
 	var (
@@ -178,7 +178,7 @@ func (op *Composite) Draw(bitmap *Bitmap, src, dst *image.NRGBA, blend *Blend) {
 				})
 
 				// applying the blending mode
-				if blend != nil {
+				if bl != nil {
 					rn, gn, bn, an = 0, 0, 0, 0 // reset the colors
 					r1, g1, b1, a1 = src.At(x, y).RGBA()
 					r2, g2, b2, a2 = dst.At(x, y).RGBA()
@@ -196,7 +196,7 @@ func (op *Composite) Draw(bitmap *Bitmap, src, dst *image.NRGBA, blend *Blend) {
 					bbn = float64(bb) / 255
 					abn = float64(ab) / 255
 
-					switch blend.Mode {
+					switch bl.Mode {
 					case Darken:
 						rn = utils.Min(rsn, rbn)
 						gn = utils.Min(gsn, gbn)
@@ -338,69 +338,89 @@ func (op *Composite) Draw(bitmap *Bitmap, src, dst *image.NRGBA, blend *Blend) {
 							an = abn + (2*asn-1)*(w3a-abn)
 						}
 					case ColorDodge:
-						if rbn == 0 {
-							rn = 0
+						if rsn < 1 {
+							rn = utils.Min(1, rbn/(1-rsn))
 						} else if rsn == 1 {
 							rn = 1
-						} else {
-							rn = utils.Min(1, rbn/(1-rsn))
 						}
 
-						if gbn == 0 {
-							gn = 0
+						if gsn < 1 {
+							gn = utils.Min(1, gbn/(1-gsn))
 						} else if gsn == 1 {
 							gn = 1
-						} else {
-							gn = utils.Min(1, gbn/(1-gsn))
 						}
 
-						if bbn == 0 {
-							bn = 0
+						if bsn < 1 {
+							bn = utils.Min(1, bbn/(1-bsn))
 						} else if bsn == 1 {
 							bn = 1
-						} else {
-							bn = utils.Min(1, bbn/(1-bsn))
 						}
 
-						if abn == 0 {
-							an = 0
+						if asn < 1 {
+							an = utils.Min(1, abn/(1-asn))
 						} else if asn == 1 {
 							an = 1
-						} else {
-							an = utils.Min(1, abn/(1-asn))
 						}
 					case ColorBurn:
-						if rbn == 1 {
-							rn = 1
+						if rsn > 0 {
+							rn = 1 - utils.Min(1, (1-rbn)/rsn)
 						} else if rsn == 0 {
 							rn = 0
-						} else {
-							rn = 1 - utils.Min(1, (1-rbn)/rsn)
 						}
 
-						if gbn == 1 {
-							gn = 1
+						if gsn > 0 {
+							gn = 1 - utils.Min(1, (1-gbn)/gsn)
 						} else if gsn == 0 {
 							gn = 0
-						} else {
-							gn = 1 - utils.Min(1, (1-gbn)/gsn)
 						}
 
-						if bbn == 1 {
-							bn = 1
+						if bsn > 0 {
+							bn = 1 - utils.Min(1, (1-bbn)/bsn)
 						} else if bsn == 0 {
 							bn = 0
-						} else {
-							bn = 1 - utils.Min(1, (1-bbn)/bsn)
 						}
 
-						if abn == 1 {
-							an = 1
+						if asn > 0 {
+							an = 1 - utils.Min(1, (1-abn)/asn)
 						} else if asn == 0 {
 							an = 0
-						} else {
-							an = 1 - utils.Min(1, (1-abn)/asn)
 						}
+					case Difference:
+						rn = utils.Abs(rbn - rsn)
+						gn = utils.Abs(gbn - gsn)
+						bn = utils.Abs(bbn - bsn)
+						an = 1
+					case Exclusion:
+						rn = rsn + rbn - 2*rsn*rbn
+						gn = gsn + gbn - 2*gsn*gbn
+						bn = bsn + bbn - 2*bsn*bbn
+						an = 1
+					case Hue:
+						foreground := Color{R: rsn, G: gsn, B: bsn}
+						background := Color{R: rbn, G: gbn, B: bbn}
+
+						sat := bl.SetSat(background, bl.Sat(foreground))
+						rgb := bl.SetLum(sat, bl.Lum(foreground))
+
+						a := asn + abn - asn*abn
+						rn = op.alphaCompose(abn, asn, a, rbn*255, rsn*255, rgb.R*255)
+						gn = op.alphaCompose(abn, asn, a, gbn*255, gsn*255, rgb.G*255)
+						bn = op.alphaCompose(abn, asn, a, bbn*255, bsn*255, rgb.B*255)
+						rn, gn, bn = rn/255, gn/255, bn/255
+						an = a
+					case Saturation:
+						foreground := Color{R: rsn, G: gsn, B: bsn}
+						background := Color{R: rbn, G: gbn, B: bbn}
+
+						sat := bl.SetSat(foreground, bl.Sat(background))
+						rgb := bl.SetLum(sat, bl.Lum(foreground))
+
+						a := asn + abn - asn*abn
+						rn = op.alphaCompose(abn, asn, a, rbn*255, rsn*255, rgb.R*255)
+						gn = op.alphaCompose(abn, asn, a, gbn*255, gsn*255, rgb.G*255)
+						bn = op.alphaCompose(abn, asn, a, bbn*255, bsn*255, rgb.B*255)
+						rn, gn, bn = rn/255, gn/255, bn/255
+						an = a
 					}
 				}
 
@@ -418,4 +438,17 @@ func (op *Composite) Draw(bitmap *Bitmap, src, dst *image.NRGBA, blend *Blend) {
 			}
 		}
 	}
+}
+
+func (op *Comp) alphaCompose(
+	backdropAlpha,
+	sourceAlpha,
+	compositeAlpha,
+	backdropColor,
+	sourceColor,
+	compositeColor float64,
+) float64 {
+	return ((1 - sourceAlpha/compositeAlpha) * backdropColor) +
+		(sourceAlpha / compositeAlpha *
+			math.Round((1-backdropAlpha)*sourceColor+backdropAlpha*compositeColor))
 }

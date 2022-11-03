@@ -5,7 +5,11 @@
 // This package implements all of the 12 composite operation together with some blending modes.
 package gomp
 
-import "github.com/esimov/gomp/utils"
+import (
+	"sort"
+
+	"github.com/esimov/gomp/utils"
+)
 
 const (
 	Darken     = "darken"
@@ -17,12 +21,20 @@ const (
 	HardLight  = "hard_light"
 	ColorDodge = "color_dodge"
 	ColorBurn  = "color_burn"
+	Difference = "difference"
+	Exclusion  = "exclusion"
+	Hue        = "hue"
+	Saturation = "saturation"
 )
 
 // Blend holds the currently active blend mode.
 type Blend struct {
 	Mode  string
 	Modes []string
+}
+
+type Color struct {
+	R, G, B float64
 }
 
 // NewBlend initializes a new Blend.
@@ -38,21 +50,96 @@ func NewBlend() *Blend {
 			HardLight,
 			ColorDodge,
 			ColorBurn,
+			Difference,
+			Exclusion,
+			Hue,
+			Saturation,
 		},
 	}
 }
 
 // Set activate one of the supported blend mode.
-func (b *Blend) Set(blendType string) {
-	if utils.Contains(b.Modes, blendType) {
-		b.Mode = blendType
+func (bl *Blend) Set(blendType string) {
+	if utils.Contains(bl.Modes, blendType) {
+		bl.Mode = blendType
 	}
 }
 
 // Get returns the currently active blend mode.
-func (b *Blend) Get() string {
-	if len(b.Mode) > 0 {
-		return b.Mode
+func (bl *Blend) Get() string {
+	if len(bl.Mode) > 0 {
+		return bl.Mode
 	}
 	return ""
+}
+
+func (bl *Blend) Lum(rgb Color) float64 {
+	return 0.3*rgb.R + 0.59*rgb.G + 0.11*rgb.B
+}
+
+func (bl *Blend) SetLum(rgb Color, l float64) Color {
+	delta := l - bl.Lum(rgb)
+	return bl.Clip(Color{
+		rgb.R + delta,
+		rgb.G + delta,
+		rgb.B + delta,
+	})
+}
+
+func (bl *Blend) Clip(rgb Color) Color {
+	r, g, b := rgb.R, rgb.G, rgb.B
+
+	l := bl.Lum(rgb)
+	min := utils.Min(r, g, b)
+	max := utils.Max(r, g, b)
+
+	if min < 0 {
+		r = l + (((r - l) * l) / (l - min))
+		g = l + (((g - l) * l) / (l - min))
+		b = l + (((b - l) * l) / (l - min))
+	}
+	if max > 1 {
+		r = l + (((r - l) * (1 - l)) / (max - l))
+		g = l + (((g - l) * (1 - l)) / (max - l))
+		b = l + (((b - l) * (1 - l)) / (max - l))
+	}
+
+	return Color{R: r, G: g, B: b}
+}
+
+func (bl *Blend) Sat(rgb Color) float64 {
+	return utils.Max(rgb.R, rgb.G, rgb.B) - utils.Min(rgb.R, rgb.G, rgb.B)
+}
+
+type channel struct {
+	key string
+	val float64
+}
+
+func (bl *Blend) SetSat(rgb Color, s float64) Color {
+	color := map[string]float64{
+		"R": rgb.R,
+		"G": rgb.G,
+		"B": rgb.B,
+	}
+	channels := make([]channel, 0, 3)
+	for k, v := range color {
+		channels = append(channels, channel{k, v})
+	}
+	sort.Slice(channels, func(i, j int) bool { return channels[i].val < channels[j].val })
+	minChan, midChan, maxChan := channels[0].key, channels[1].key, channels[2].key
+
+	if color[maxChan] > color[minChan] {
+		color[midChan] = (((color[midChan] - color[minChan]) * s) / (color[maxChan] - color[minChan]))
+		color[maxChan] = s
+	} else {
+		color[midChan], color[maxChan] = 0, 0
+	}
+	color[minChan] = 0
+
+	return Color{
+		R: color["R"],
+		G: color["G"],
+		B: color["B"],
+	}
 }
