@@ -20,17 +20,19 @@ func main() {
 	dc.DrawRectangle(0, 0, 1024, 768)
 	dc.Fill()
 
+	// Source image
 	src := gg.NewContext(256, 256)
 	src.DrawRectangle(15, 95, 145, 145)
 	src.SetHexColor("#2196f3")
 	src.Fill()
 	srcImg := gomp.ImgToNRGBA(src.Image())
 
-	dst := gg.NewContext(256, 256)
-	dst.DrawCircle(165, 95, 75)
-	dst.SetHexColor("#e91e63")
-	dst.Fill()
-	dstImg := gomp.ImgToNRGBA(dst.Image())
+	// Backdrop image
+	bgr := gg.NewContext(256, 256)
+	bgr.DrawCircle(165, 95, 75)
+	bgr.SetHexColor("#e91e63")
+	bgr.Fill()
+	bdImg := gomp.ImgToNRGBA(bgr.Image())
 
 	font, err := truetype.Parse(goregular.TTF)
 	if err != nil {
@@ -70,7 +72,7 @@ func main() {
 
 		imop.Set(op)
 		bmp := gomp.NewBitmap(image.Rect(0, 0, size, size))
-		imop.Draw(bmp, srcImg, dstImg, nil)
+		imop.Draw(bmp, srcImg, bdImg, nil)
 
 		strw, _ := dc.MeasureString(op)
 		dc.DrawImage(bmp.Img, gridX, gridY)
@@ -86,6 +88,6 @@ func main() {
 	}
 
 	finalImg := dc.Image()
-	output, _ := os.Create("composite.png")
+	output, _ := os.Create("out/composite.png")
 	png.Encode(output, finalImg)
 }

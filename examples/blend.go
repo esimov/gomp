@@ -34,10 +34,10 @@ func main() {
 	imop := gomp.InitOp()
 	blop := gomp.NewBlend()
 
-	dc := gg.NewContext(1024, 768)
+	dc := gg.NewContext(1024, 1024)
 	dc.Clear()
 	dc.SetRGB(1, 1, 1)
-	dc.DrawRectangle(0, 0, 1024, 768)
+	dc.DrawRectangle(0, 0, 1024, 1024)
 	dc.Fill()
 
 	font, err := truetype.Parse(goregular.TTF)
@@ -84,7 +84,7 @@ func main() {
 		strw, _ := dc.MeasureString(op)
 		dc.DrawImage(bmp.Img, gridX, gridY)
 		dc.DrawRectangle(float64(gridX), float64(gridY), float64(gridX+size), float64(gridY+size))
-		dc.SetRGB(1, 1, 1)
+		dc.SetRGB(0.7, 0.7, 0.7)
 		dc.Stroke()
 
 		dc.SetRGB(1, 1, 1)
@@ -95,6 +95,6 @@ func main() {
 	}
 
 	finalImg := dc.Image()
-	output, _ := os.Create("blend.png")
+	output, _ := os.Create("out/blend.png")
 	png.Encode(output, finalImg)
 }
