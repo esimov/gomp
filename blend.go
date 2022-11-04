@@ -7,8 +7,6 @@ package gomp
 
 import (
 	"sort"
-
-	"github.com/esimov/gomp/math"
 )
 
 const (
@@ -68,7 +66,7 @@ func NewBlend() *Blend {
 
 // Set activate one of the supported blend mode.
 func (bl *Blend) Set(blendType string) {
-	if math.Contains(bl.Modes, blendType) {
+	if contains(bl.Modes, blendType) {
 		bl.Mode = blendType
 	}
 }
@@ -98,8 +96,8 @@ func (bl *Blend) Clip(rgb Color) Color {
 	r, g, b := rgb.R, rgb.G, rgb.B
 
 	l := bl.Lum(rgb)
-	min := math.Min(r, g, b)
-	max := math.Max(r, g, b)
+	min := min(r, g, b)
+	max := max(r, g, b)
 
 	if min < 0 {
 		r = l + (((r - l) * l) / (l - min))
@@ -116,7 +114,7 @@ func (bl *Blend) Clip(rgb Color) Color {
 }
 
 func (bl *Blend) Sat(rgb Color) float64 {
-	return math.Max(rgb.R, rgb.G, rgb.B) - math.Min(rgb.R, rgb.G, rgb.B)
+	return max(rgb.R, rgb.G, rgb.B) - min(rgb.R, rgb.G, rgb.B)
 }
 
 type channel struct {
