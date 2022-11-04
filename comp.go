@@ -200,7 +200,7 @@ func (op *Comp) Draw(bitmap *Bitmap, src, dst *image.NRGBA, bl *Blend) {
 					background := Color{R: rbn, G: gbn, B: bbn}
 
 					switch bl.Mode {
-					case Source:
+					case Normal:
 						rn, gn, bn, an = rsn, gsn, bsn, asn
 					case Darken:
 						rn = m.Min(rsn, rbn)

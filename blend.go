@@ -12,7 +12,7 @@ import (
 )
 
 const (
-	Source     = "source"
+	Normal     = "normal"
 	Darken     = "darken"
 	Lighten    = "lighten"
 	Multiply   = "multiply"
@@ -46,7 +46,7 @@ type Color struct {
 func NewBlend() *Blend {
 	return &Blend{
 		Modes: []string{
-			Source,
+			Normal,
 			Darken,
 			Lighten,
 			Multiply,
