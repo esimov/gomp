@@ -22,14 +22,14 @@ func main() {
 
 	// Source image
 	src := gg.NewContext(256, 256)
-	src.DrawRectangle(15, 95, 145, 145)
+	src.DrawRectangle(15, 85, 135, 135)
 	src.SetHexColor("#2196f3")
 	src.Fill()
 	srcImg := gomp.ImgToNRGBA(src.Image())
 
 	// Backdrop image
 	bgr := gg.NewContext(256, 256)
-	bgr.DrawCircle(165, 95, 75)
+	bgr.DrawCircle(165, 85, 75)
 	bgr.SetHexColor("#e91e63")
 	bgr.Fill()
 	bdImg := gomp.ImgToNRGBA(bgr.Image())
@@ -82,7 +82,7 @@ func main() {
 
 		dc.SetRGB(0.2, 0.2, 0.2)
 		dc.Stroke()
-		dc.DrawString(op, float64(gridX)+(float64(size)/2-strw/2), float64(gridY-2+size))
+		dc.DrawString(op, float64(gridX)+(float64(size)/2-strw/2), float64(gridY-10+size))
 
 		gridX += size
 	}
