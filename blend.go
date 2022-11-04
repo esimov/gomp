@@ -8,10 +8,11 @@ package gomp
 import (
 	"sort"
 
-	"github.com/esimov/gomp/utils"
+	"github.com/esimov/gomp/math"
 )
 
 const (
+	Source     = "source"
 	Darken     = "darken"
 	Lighten    = "lighten"
 	Multiply   = "multiply"
@@ -23,8 +24,12 @@ const (
 	ColorBurn  = "color_burn"
 	Difference = "difference"
 	Exclusion  = "exclusion"
+
+	// Non-separable blend modes
 	Hue        = "hue"
 	Saturation = "saturation"
+	ColorMode  = "color"
+	Luminosity = "luminosity"
 )
 
 // Blend holds the currently active blend mode.
@@ -41,6 +46,7 @@ type Color struct {
 func NewBlend() *Blend {
 	return &Blend{
 		Modes: []string{
+			Source,
 			Darken,
 			Lighten,
 			Multiply,
@@ -54,13 +60,15 @@ func NewBlend() *Blend {
 			Exclusion,
 			Hue,
 			Saturation,
+			ColorMode,
+			Luminosity,
 		},
 	}
 }
 
 // Set activate one of the supported blend mode.
 func (bl *Blend) Set(blendType string) {
-	if utils.Contains(bl.Modes, blendType) {
+	if math.Contains(bl.Modes, blendType) {
 		bl.Mode = blendType
 	}
 }
@@ -90,8 +98,8 @@ func (bl *Blend) Clip(rgb Color) Color {
 	r, g, b := rgb.R, rgb.G, rgb.B
 
 	l := bl.Lum(rgb)
-	min := utils.Min(r, g, b)
-	max := utils.Max(r, g, b)
+	min := math.Min(r, g, b)
+	max := math.Max(r, g, b)
 
 	if min < 0 {
 		r = l + (((r - l) * l) / (l - min))
@@ -108,7 +116,7 @@ func (bl *Blend) Clip(rgb Color) Color {
 }
 
 func (bl *Blend) Sat(rgb Color) float64 {
-	return utils.Max(rgb.R, rgb.G, rgb.B) - utils.Min(rgb.R, rgb.G, rgb.B)
+	return math.Max(rgb.R, rgb.G, rgb.B) - math.Min(rgb.R, rgb.G, rgb.B)
 }
 
 type channel struct {

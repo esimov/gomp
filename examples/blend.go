@@ -7,6 +7,7 @@ import (
 	"image/png"
 	"log"
 	"os"
+	"strings"
 
 	"github.com/esimov/gomp"
 	"github.com/fogleman/gg"
@@ -81,7 +82,7 @@ func main() {
 		bmp := gomp.NewBitmap(image.Rect(0, 0, size, size))
 		imop.Draw(bmp, srcImg, bgr, blop)
 
-		strw, _ := dc.MeasureString(op)
+		dx, _ := dc.MeasureString(op)
 		dc.DrawImage(bmp.Img, gridX, gridY)
 		dc.DrawRectangle(float64(gridX), float64(gridY), float64(gridX+size), float64(gridY+size))
 		dc.SetRGB(0.7, 0.7, 0.7)
@@ -89,7 +90,8 @@ func main() {
 
 		dc.SetRGB(1, 1, 1)
 		dc.Stroke()
-		dc.DrawString(op, float64(gridX)+(float64(size)/2-strw/2), float64(gridY-5+size))
+		opName := strings.ReplaceAll(op, "_", " ")
+		dc.DrawString(opName, float64(gridX)+(float64(size)/2-dx/2), float64(gridY-5+size))
 
 		gridX += size
 	}

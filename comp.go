@@ -10,7 +10,7 @@ import (
 	"image/color"
 	"math"
 
-	"github.com/esimov/gomp/utils"
+	m "github.com/esimov/gomp/math"
 )
 
 const (
@@ -84,7 +84,7 @@ func (op *Comp) Draw(bitmap *Bitmap, src, dst *image.NRGBA, bl *Blend) {
 		rn, gn, bn, an float64
 	)
 
-	if utils.Contains(op.Ops, op.CurrentOp) {
+	if m.Contains(op.Ops, op.CurrentOp) {
 		for x := 0; x < dx; x++ {
 			for y := 0; y < dy; y++ {
 				r1, g1, b1, a1 := src.At(x, y).RGBA()
@@ -196,17 +196,22 @@ func (op *Comp) Draw(bitmap *Bitmap, src, dst *image.NRGBA, bl *Blend) {
 					bbn = float64(bb) / 255
 					abn = float64(ab) / 255
 
+					foreground := Color{R: rsn, G: gsn, B: bsn}
+					background := Color{R: rbn, G: gbn, B: bbn}
+
 					switch bl.Mode {
+					case Source:
+						rn, gn, bn, an = rsn, gsn, bsn, asn
 					case Darken:
-						rn = utils.Min(rsn, rbn)
-						gn = utils.Min(gsn, gbn)
-						bn = utils.Min(bsn, bbn)
-						an = utils.Min(asn, abn)
+						rn = m.Min(rsn, rbn)
+						gn = m.Min(gsn, gbn)
+						bn = m.Min(bsn, bbn)
+						an = m.Min(asn, abn)
 					case Lighten:
-						rn = utils.Max(rsn, rbn)
-						gn = utils.Max(gsn, gbn)
-						bn = utils.Max(bsn, bbn)
-						an = utils.Max(asn, abn)
+						rn = m.Max(rsn, rbn)
+						gn = m.Max(gsn, gbn)
+						bn = m.Max(bsn, bbn)
+						an = m.Max(asn, abn)
 					case Screen:
 						rn = 1 - (1-rsn)*(1-rbn)
 						gn = 1 - (1-gsn)*(1-gbn)
@@ -339,66 +344,66 @@ func (op *Comp) Draw(bitmap *Bitmap, src, dst *image.NRGBA, bl *Blend) {
 						}
 					case ColorDodge:
 						if rsn < 1 {
-							rn = utils.Min(1, rbn/(1-rsn))
+							rn = m.Min(1, rbn/(1-rsn))
 						} else if rsn == 1 {
 							rn = 1
 						}
 
 						if gsn < 1 {
-							gn = utils.Min(1, gbn/(1-gsn))
+							gn = m.Min(1, gbn/(1-gsn))
 						} else if gsn == 1 {
 							gn = 1
 						}
 
 						if bsn < 1 {
-							bn = utils.Min(1, bbn/(1-bsn))
+							bn = m.Min(1, bbn/(1-bsn))
 						} else if bsn == 1 {
 							bn = 1
 						}
 
 						if asn < 1 {
-							an = utils.Min(1, abn/(1-asn))
+							an = m.Min(1, abn/(1-asn))
 						} else if asn == 1 {
 							an = 1
 						}
 					case ColorBurn:
 						if rsn > 0 {
-							rn = 1 - utils.Min(1, (1-rbn)/rsn)
+							rn = 1 - m.Min(1, (1-rbn)/rsn)
 						} else if rsn == 0 {
 							rn = 0
 						}
 
 						if gsn > 0 {
-							gn = 1 - utils.Min(1, (1-gbn)/gsn)
+							gn = 1 - m.Min(1, (1-gbn)/gsn)
 						} else if gsn == 0 {
 							gn = 0
 						}
 
 						if bsn > 0 {
-							bn = 1 - utils.Min(1, (1-bbn)/bsn)
+							bn = 1 - m.Min(1, (1-bbn)/bsn)
 						} else if bsn == 0 {
 							bn = 0
 						}
 
 						if asn > 0 {
-							an = 1 - utils.Min(1, (1-abn)/asn)
+							an = 1 - m.Min(1, (1-abn)/asn)
 						} else if asn == 0 {
 							an = 0
 						}
 					case Difference:
-						rn = utils.Abs(rbn - rsn)
-						gn = utils.Abs(gbn - gsn)
-						bn = utils.Abs(bbn - bsn)
+						rn = m.Abs(rbn - rsn)
+						gn = m.Abs(gbn - gsn)
+						bn = m.Abs(bbn - bsn)
 						an = 1
 					case Exclusion:
 						rn = rsn + rbn - 2*rsn*rbn
 						gn = gsn + gbn - 2*gsn*gbn
 						bn = bsn + bbn - 2*bsn*bbn
 						an = 1
-					case Hue:
-						foreground := Color{R: rsn, G: gsn, B: bsn}
-						background := Color{R: rbn, G: gbn, B: bbn}
 
+					// Non-separable blend modes
+					// https://www.w3.org/TR/compositing-1/#blendingnonseparable
+					case Hue:
 						sat := bl.SetSat(background, bl.Sat(foreground))
 						rgb := bl.SetLum(sat, bl.Lum(foreground))
 
@@ -409,11 +414,26 @@ func (op *Comp) Draw(bitmap *Bitmap, src, dst *image.NRGBA, bl *Blend) {
 						rn, gn, bn = rn/255, gn/255, bn/255
 						an = a
 					case Saturation:
-						foreground := Color{R: rsn, G: gsn, B: bsn}
-						background := Color{R: rbn, G: gbn, B: bbn}
-
 						sat := bl.SetSat(foreground, bl.Sat(background))
 						rgb := bl.SetLum(sat, bl.Lum(foreground))
+
+						a := asn + abn - asn*abn
+						rn = op.alphaCompose(abn, asn, a, rbn*255, rsn*255, rgb.R*255)
+						gn = op.alphaCompose(abn, asn, a, gbn*255, gsn*255, rgb.G*255)
+						bn = op.alphaCompose(abn, asn, a, bbn*255, bsn*255, rgb.B*255)
+						rn, gn, bn = rn/255, gn/255, bn/255
+						an = a
+					case ColorMode:
+						rgb := bl.SetLum(background, bl.Lum(foreground))
+
+						a := asn + abn - asn*abn
+						rn = op.alphaCompose(abn, asn, a, rbn*255, rsn*255, rgb.R*255)
+						gn = op.alphaCompose(abn, asn, a, gbn*255, gsn*255, rgb.G*255)
+						bn = op.alphaCompose(abn, asn, a, bbn*255, bsn*255, rgb.B*255)
+						rn, gn, bn = rn/255, gn/255, bn/255
+						an = a
+					case Luminosity:
+						rgb := bl.SetLum(foreground, bl.Lum(background))
 
 						a := asn + abn - asn*abn
 						rn = op.alphaCompose(abn, asn, a, rbn*255, rsn*255, rgb.R*255)
