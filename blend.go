@@ -36,6 +36,7 @@ type Blend struct {
 	Modes []string
 }
 
+// Color represents the RGB channel of a specific color.
 type Color struct {
 	R, G, B float64
 }
@@ -64,14 +65,14 @@ func NewBlend() *Blend {
 	}
 }
 
-// Set activate one of the supported blend mode.
+// Set activate one of the supported blend modes.
 func (bl *Blend) Set(blendType string) {
-	if contains(bl.Modes, blendType) {
+	if Contains(bl.Modes, blendType) {
 		bl.Mode = blendType
 	}
 }
 
-// Get returns the currently active blend mode.
+// Get returns the active blend mode.
 func (bl *Blend) Get() string {
 	if len(bl.Mode) > 0 {
 		return bl.Mode
@@ -79,10 +80,12 @@ func (bl *Blend) Get() string {
 	return ""
 }
 
+// Lum gets the luminosity of a color.
 func (bl *Blend) Lum(rgb Color) float64 {
 	return 0.3*rgb.R + 0.59*rgb.G + 0.11*rgb.B
 }
 
+// SetLum set the luminosity on a color.
 func (bl *Blend) SetLum(rgb Color, l float64) Color {
 	delta := l - bl.Lum(rgb)
 	return bl.Clip(Color{
@@ -92,12 +95,13 @@ func (bl *Blend) SetLum(rgb Color, l float64) Color {
 	})
 }
 
+// Clip clips the channels of a color between certain min and max values.
 func (bl *Blend) Clip(rgb Color) Color {
 	r, g, b := rgb.R, rgb.G, rgb.B
 
 	l := bl.Lum(rgb)
-	min := min(r, g, b)
-	max := max(r, g, b)
+	min := Min(r, g, b)
+	max := Max(r, g, b)
 
 	if min < 0 {
 		r = l + (((r - l) * l) / (l - min))
@@ -113,10 +117,15 @@ func (bl *Blend) Clip(rgb Color) Color {
 	return Color{R: r, G: g, B: b}
 }
 
+// Sat gets the saturation of a color.
 func (bl *Blend) Sat(rgb Color) float64 {
-	return max(rgb.R, rgb.G, rgb.B) - min(rgb.R, rgb.G, rgb.B)
+	return Max(rgb.R, rgb.G, rgb.B) - Min(rgb.R, rgb.G, rgb.B)
 }
 
+// channel is a key/value struct pair used for sorting the color channels
+// based on the color components having the minimum, middle, and maximum
+// values upon entry to the function.
+// The key component holds the channel name and val is the value it has.
 type channel struct {
 	key string
 	val float64
@@ -132,6 +141,7 @@ func (bl *Blend) SetSat(rgb Color, s float64) Color {
 	for k, v := range color {
 		channels = append(channels, channel{k, v})
 	}
+	// Sort the color channels based on their values.
 	sort.Slice(channels, func(i, j int) bool { return channels[i].val < channels[j].val })
 	minChan, midChan, maxChan := channels[0].key, channels[1].key, channels[2].key
 

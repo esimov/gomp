@@ -82,7 +82,7 @@ func (op *Comp) Draw(bitmap *Bitmap, src, dst *image.NRGBA, bl *Blend) {
 		rn, gn, bn, an float64
 	)
 
-	if contains(op.Ops, op.CurrentOp) {
+	if Contains(op.Ops, op.CurrentOp) {
 		for x := 0; x < dx; x++ {
 			for y := 0; y < dy; y++ {
 				r1, g1, b1, a1 := src.At(x, y).RGBA()
@@ -201,15 +201,15 @@ func (op *Comp) Draw(bitmap *Bitmap, src, dst *image.NRGBA, bl *Blend) {
 					case Normal:
 						rn, gn, bn, an = rsn, gsn, bsn, asn
 					case Darken:
-						rn = min(rsn, rbn)
-						gn = min(gsn, gbn)
-						bn = min(bsn, bbn)
-						an = min(asn, abn)
+						rn = Min(rsn, rbn)
+						gn = Min(gsn, gbn)
+						bn = Min(bsn, bbn)
+						an = Min(asn, abn)
 					case Lighten:
-						rn = max(rsn, rbn)
-						gn = max(gsn, gbn)
-						bn = max(bsn, bbn)
-						an = max(asn, abn)
+						rn = Max(rsn, rbn)
+						gn = Max(gsn, gbn)
+						bn = Max(bsn, bbn)
+						an = Max(asn, abn)
 					case Screen:
 						rn = 1 - (1-rsn)*(1-rbn)
 						gn = 1 - (1-gsn)*(1-gbn)
@@ -342,56 +342,56 @@ func (op *Comp) Draw(bitmap *Bitmap, src, dst *image.NRGBA, bl *Blend) {
 						}
 					case ColorDodge:
 						if rsn < 1 {
-							rn = min(1, rbn/(1-rsn))
+							rn = Min(1, rbn/(1-rsn))
 						} else if rsn == 1 {
 							rn = 1
 						}
 
 						if gsn < 1 {
-							gn = min(1, gbn/(1-gsn))
+							gn = Min(1, gbn/(1-gsn))
 						} else if gsn == 1 {
 							gn = 1
 						}
 
 						if bsn < 1 {
-							bn = min(1, bbn/(1-bsn))
+							bn = Min(1, bbn/(1-bsn))
 						} else if bsn == 1 {
 							bn = 1
 						}
 
 						if asn < 1 {
-							an = min(1, abn/(1-asn))
+							an = Min(1, abn/(1-asn))
 						} else if asn == 1 {
 							an = 1
 						}
 					case ColorBurn:
 						if rsn > 0 {
-							rn = 1 - min(1, (1-rbn)/rsn)
+							rn = 1 - Min(1, (1-rbn)/rsn)
 						} else if rsn == 0 {
 							rn = 0
 						}
 
 						if gsn > 0 {
-							gn = 1 - min(1, (1-gbn)/gsn)
+							gn = 1 - Min(1, (1-gbn)/gsn)
 						} else if gsn == 0 {
 							gn = 0
 						}
 
 						if bsn > 0 {
-							bn = 1 - min(1, (1-bbn)/bsn)
+							bn = 1 - Min(1, (1-bbn)/bsn)
 						} else if bsn == 0 {
 							bn = 0
 						}
 
 						if asn > 0 {
-							an = 1 - min(1, (1-abn)/asn)
+							an = 1 - Min(1, (1-abn)/asn)
 						} else if asn == 0 {
 							an = 0
 						}
 					case Difference:
-						rn = abs(rbn - rsn)
-						gn = abs(gbn - gsn)
-						bn = abs(bbn - bsn)
+						rn = Abs(rbn - rsn)
+						gn = Abs(gbn - gsn)
+						bn = Abs(bbn - bsn)
 						an = 1
 					case Exclusion:
 						rn = rsn + rbn - 2*rsn*rbn
@@ -458,6 +458,8 @@ func (op *Comp) Draw(bitmap *Bitmap, src, dst *image.NRGBA, bl *Blend) {
 	}
 }
 
+// Applies the alpha blending formula for a blend operation.
+// See: https://www.w3.org/TR/compositing-1/#blending
 func (op *Comp) alphaCompose(
 	backdropAlpha,
 	sourceAlpha,
