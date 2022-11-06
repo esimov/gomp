@@ -6,6 +6,7 @@
 package gomp
 
 import (
+	"math"
 	"sort"
 )
 
@@ -88,15 +89,15 @@ func (bl *Blend) Lum(rgb Color) float64 {
 // SetLum set the luminosity on a color.
 func (bl *Blend) SetLum(rgb Color, l float64) Color {
 	delta := l - bl.Lum(rgb)
-	return bl.Clip(Color{
+	return bl.clip(Color{
 		rgb.R + delta,
 		rgb.G + delta,
 		rgb.B + delta,
 	})
 }
 
-// Clip clips the channels of a color between certain min and max values.
-func (bl *Blend) Clip(rgb Color) Color {
+// clip clips the channels of a color between certain min and max values.
+func (bl *Blend) clip(rgb Color) Color {
 	r, g, b := rgb.R, rgb.G, rgb.B
 
 	l := bl.Lum(rgb)
@@ -158,4 +159,19 @@ func (bl *Blend) SetSat(rgb Color, s float64) Color {
 		G: color["G"],
 		B: color["B"],
 	}
+}
+
+// Applies the alpha blending formula for a blend operation.
+// See: https://www.w3.org/TR/compositing-1/#blending
+func (bl *Blend) AlphaCompose(
+	backdropAlpha,
+	sourceAlpha,
+	compositeAlpha,
+	backdropColor,
+	sourceColor,
+	compositeColor float64,
+) float64 {
+	return ((1 - sourceAlpha/compositeAlpha) * backdropColor) +
+		(sourceAlpha / compositeAlpha *
+			math.Round((1-backdropAlpha)*sourceColor+backdropAlpha*compositeColor))
 }

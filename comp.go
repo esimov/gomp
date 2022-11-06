@@ -406,9 +406,9 @@ func (op *Comp) Draw(bitmap *Bitmap, src, dst *image.NRGBA, bl *Blend) {
 						rgb := bl.SetLum(sat, bl.Lum(foreground))
 
 						a := asn + abn - asn*abn
-						rn = op.alphaCompose(abn, asn, a, rbn*255, rsn*255, rgb.R*255)
-						gn = op.alphaCompose(abn, asn, a, gbn*255, gsn*255, rgb.G*255)
-						bn = op.alphaCompose(abn, asn, a, bbn*255, bsn*255, rgb.B*255)
+						rn = bl.AlphaCompose(abn, asn, a, rbn*255, rsn*255, rgb.R*255)
+						gn = bl.AlphaCompose(abn, asn, a, gbn*255, gsn*255, rgb.G*255)
+						bn = bl.AlphaCompose(abn, asn, a, bbn*255, bsn*255, rgb.B*255)
 						rn, gn, bn = rn/255, gn/255, bn/255
 						an = a
 					case Saturation:
@@ -416,27 +416,27 @@ func (op *Comp) Draw(bitmap *Bitmap, src, dst *image.NRGBA, bl *Blend) {
 						rgb := bl.SetLum(sat, bl.Lum(foreground))
 
 						a := asn + abn - asn*abn
-						rn = op.alphaCompose(abn, asn, a, rbn*255, rsn*255, rgb.R*255)
-						gn = op.alphaCompose(abn, asn, a, gbn*255, gsn*255, rgb.G*255)
-						bn = op.alphaCompose(abn, asn, a, bbn*255, bsn*255, rgb.B*255)
+						rn = bl.AlphaCompose(abn, asn, a, rbn*255, rsn*255, rgb.R*255)
+						gn = bl.AlphaCompose(abn, asn, a, gbn*255, gsn*255, rgb.G*255)
+						bn = bl.AlphaCompose(abn, asn, a, bbn*255, bsn*255, rgb.B*255)
 						rn, gn, bn = rn/255, gn/255, bn/255
 						an = a
 					case ColorMode:
 						rgb := bl.SetLum(background, bl.Lum(foreground))
 
 						a := asn + abn - asn*abn
-						rn = op.alphaCompose(abn, asn, a, rbn*255, rsn*255, rgb.R*255)
-						gn = op.alphaCompose(abn, asn, a, gbn*255, gsn*255, rgb.G*255)
-						bn = op.alphaCompose(abn, asn, a, bbn*255, bsn*255, rgb.B*255)
+						rn = bl.AlphaCompose(abn, asn, a, rbn*255, rsn*255, rgb.R*255)
+						gn = bl.AlphaCompose(abn, asn, a, gbn*255, gsn*255, rgb.G*255)
+						bn = bl.AlphaCompose(abn, asn, a, bbn*255, bsn*255, rgb.B*255)
 						rn, gn, bn = rn/255, gn/255, bn/255
 						an = a
 					case Luminosity:
 						rgb := bl.SetLum(foreground, bl.Lum(background))
 
 						a := asn + abn - asn*abn
-						rn = op.alphaCompose(abn, asn, a, rbn*255, rsn*255, rgb.R*255)
-						gn = op.alphaCompose(abn, asn, a, gbn*255, gsn*255, rgb.G*255)
-						bn = op.alphaCompose(abn, asn, a, bbn*255, bsn*255, rgb.B*255)
+						rn = bl.AlphaCompose(abn, asn, a, rbn*255, rsn*255, rgb.R*255)
+						gn = bl.AlphaCompose(abn, asn, a, gbn*255, gsn*255, rgb.G*255)
+						bn = bl.AlphaCompose(abn, asn, a, bbn*255, bsn*255, rgb.B*255)
 						rn, gn, bn = rn/255, gn/255, bn/255
 						an = a
 					}
@@ -456,19 +456,4 @@ func (op *Comp) Draw(bitmap *Bitmap, src, dst *image.NRGBA, bl *Blend) {
 			}
 		}
 	}
-}
-
-// Applies the alpha blending formula for a blend operation.
-// See: https://www.w3.org/TR/compositing-1/#blending
-func (op *Comp) alphaCompose(
-	backdropAlpha,
-	sourceAlpha,
-	compositeAlpha,
-	backdropColor,
-	sourceColor,
-	compositeColor float64,
-) float64 {
-	return ((1 - sourceAlpha/compositeAlpha) * backdropColor) +
-		(sourceAlpha / compositeAlpha *
-			math.Round((1-backdropAlpha)*sourceColor+backdropAlpha*compositeColor))
 }
