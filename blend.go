@@ -6,6 +6,7 @@
 package gomp
 
 import (
+	"fmt"
 	"math"
 	"sort"
 )
@@ -31,10 +32,10 @@ const (
 	Luminosity = "luminosity"
 )
 
-// Blend holds the currently active blend mode.
+// Blend struct contains the currently active blend mode and all the supported blend modes.
 type Blend struct {
-	Mode  string
-	Modes []string
+	Current string
+	Modes   []string
 }
 
 // Color represents the RGB channel of a specific color.
@@ -67,18 +68,17 @@ func NewBlend() *Blend {
 }
 
 // Set activate one of the supported blend modes.
-func (bl *Blend) Set(blendType string) {
+func (bl *Blend) Set(blendType string) error {
 	if Contains(bl.Modes, blendType) {
-		bl.Mode = blendType
+		bl.Current = blendType
+		return nil
 	}
+	return fmt.Errorf("unsupported blend mode")
 }
 
 // Get returns the active blend mode.
 func (bl *Blend) Get() string {
-	if len(bl.Mode) > 0 {
-		return bl.Mode
-	}
-	return ""
+	return bl.Current
 }
 
 // Lum gets the luminosity of a color.

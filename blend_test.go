@@ -14,6 +14,8 @@ func TestBlend_Basic(t *testing.T) {
 
 	op := NewBlend()
 	assert.Empty(op.Get())
+	err := op.Set("blend_mode_not_supported")
+	assert.Error(err)
 	op.Set(Darken)
 	assert.Equal(Darken, op.Get())
 	op.Set(Lighten)
@@ -63,8 +65,8 @@ func TestBlend_Modes(t *testing.T) {
 	draw.Draw(backdrop, rect, &image.Uniform{orangeBack}, image.Point{}, draw.Src)
 	imop.Draw(bmp, source, backdrop, blop)
 
-	exp := []uint8{214, 20, 17, 255}
-	assert.EqualValues(exp, bmp.Img.Pix)
+	expected := []uint8{214, 20, 17, 255}
+	assert.EqualValues(expected, bmp.Img.Pix)
 
 	// Multiply
 	blop.Set(Multiply)
@@ -72,8 +74,8 @@ func TestBlend_Modes(t *testing.T) {
 	draw.Draw(backdrop, rect, &image.Uniform{orangeBack}, image.Point{}, draw.Src)
 	imop.Draw(bmp, source, backdrop, blop)
 
-	exp = []uint8{209, 9, 4, 255}
-	assert.EqualValues(exp, bmp.Img.Pix)
+	expected = []uint8{209, 9, 4, 255}
+	assert.EqualValues(expected, bmp.Img.Pix)
 
 	// Screen
 	blop.Set(Screen)
@@ -81,8 +83,8 @@ func TestBlend_Modes(t *testing.T) {
 	draw.Draw(backdrop, rect, &image.Uniform{orangeBack}, image.Point{}, draw.Src)
 	imop.Draw(bmp, source, backdrop, blop)
 
-	exp = []uint8{254, 131, 77, 255}
-	assert.EqualValues(exp, bmp.Img.Pix)
+	expected = []uint8{254, 131, 77, 255}
+	assert.EqualValues(expected, bmp.Img.Pix)
 
 	// Overlay
 	blop.Set(Overlay)
@@ -90,8 +92,8 @@ func TestBlend_Modes(t *testing.T) {
 	draw.Draw(backdrop, rect, &image.Uniform{orangeBack}, image.Point{}, draw.Src)
 	imop.Draw(bmp, source, backdrop, blop)
 
-	exp = []uint8{253, 18, 8, 255}
-	assert.EqualValues(exp, bmp.Img.Pix)
+	expected = []uint8{253, 18, 8, 255}
+	assert.EqualValues(expected, bmp.Img.Pix)
 
 	// SoftLight
 	blop.Set(SoftLight)
@@ -99,8 +101,8 @@ func TestBlend_Modes(t *testing.T) {
 	draw.Draw(backdrop, rect, &image.Uniform{orangeBack}, image.Point{}, draw.Src)
 	imop.Draw(bmp, source, backdrop, blop)
 
-	exp = []uint8{232, 19, 23, 255}
-	assert.EqualValues(exp, bmp.Img.Pix)
+	expected = []uint8{232, 19, 23, 255}
+	assert.EqualValues(expected, bmp.Img.Pix)
 
 	// HardLight
 	blop.Set(HardLight)
@@ -108,8 +110,8 @@ func TestBlend_Modes(t *testing.T) {
 	draw.Draw(backdrop, rect, &image.Uniform{orangeBack}, image.Point{}, draw.Src)
 	imop.Draw(bmp, source, backdrop, blop)
 
-	exp = []uint8{251, 67, 9, 255}
-	assert.EqualValues(exp, bmp.Img.Pix)
+	expected = []uint8{251, 67, 9, 255}
+	assert.EqualValues(expected, bmp.Img.Pix)
 
 	// ColorDodge
 	blop.Set(ColorDodge)
@@ -117,8 +119,8 @@ func TestBlend_Modes(t *testing.T) {
 	draw.Draw(backdrop, rect, &image.Uniform{orangeBack}, image.Point{}, draw.Src)
 	imop.Draw(bmp, source, backdrop, blop)
 
-	exp = []uint8{255, 131, 22, 255}
-	assert.EqualValues(exp, bmp.Img.Pix)
+	expected = []uint8{255, 131, 22, 255}
+	assert.EqualValues(expected, bmp.Img.Pix)
 
 	// ColorBurn
 	blop.Set(ColorBurn)
@@ -126,8 +128,8 @@ func TestBlend_Modes(t *testing.T) {
 	draw.Draw(backdrop, rect, &image.Uniform{orangeBack}, image.Point{}, draw.Src)
 	imop.Draw(bmp, source, backdrop, blop)
 
-	exp = []uint8{249, 0, 0, 255}
-	assert.EqualValues(exp, bmp.Img.Pix)
+	expected = []uint8{249, 0, 0, 255}
+	assert.EqualValues(expected, bmp.Img.Pix)
 
 	// Difference
 	blop.Set(Difference)
@@ -135,8 +137,8 @@ func TestBlend_Modes(t *testing.T) {
 	draw.Draw(backdrop, rect, &image.Uniform{orangeBack}, image.Point{}, draw.Src)
 	imop.Draw(bmp, source, backdrop, blop)
 
-	exp = []uint8{35, 101, 48, 255}
-	assert.EqualValues(exp, bmp.Img.Pix)
+	expected = []uint8{35, 101, 48, 255}
+	assert.EqualValues(expected, bmp.Img.Pix)
 
 	// Exclusion
 	blop.Set(Exclusion)
@@ -144,8 +146,8 @@ func TestBlend_Modes(t *testing.T) {
 	draw.Draw(backdrop, rect, &image.Uniform{orangeBack}, image.Point{}, draw.Src)
 	imop.Draw(bmp, source, backdrop, blop)
 
-	exp = []uint8{44, 122, 73, 255}
-	assert.EqualValues(exp, bmp.Img.Pix)
+	expected = []uint8{44, 122, 73, 255}
+	assert.EqualValues(expected, bmp.Img.Pix)
 }
 
 func TestBlend_NonSeparableModes(t *testing.T) {
@@ -159,44 +161,44 @@ func TestBlend_NonSeparableModes(t *testing.T) {
 
 	rect := image.Rect(0, 0, 1, 1)
 	bmp := NewBitmap(rect)
-	src := image.NewNRGBA(rect)
-	dst := image.NewNRGBA(rect)
+	source := image.NewNRGBA(rect)
+	backdrop := image.NewNRGBA(rect)
 
 	imop.Set(SrcOver)
 
 	// Hue
 	blop.Set(Hue)
-	draw.Draw(src, rect, &image.Uniform{frontColor}, image.Point{}, draw.Src)
-	draw.Draw(dst, rect, &image.Uniform{backColor}, image.Point{}, draw.Src)
-	imop.Draw(bmp, src, dst, blop)
+	draw.Draw(source, rect, &image.Uniform{frontColor}, image.Point{}, draw.Src)
+	draw.Draw(backdrop, rect, &image.Uniform{backColor}, image.Point{}, draw.Src)
+	imop.Draw(bmp, source, backdrop, blop)
 
-	exp := []uint8{255, 97, 133, 255}
-	assert.EqualValues(exp, bmp.Img.Pix)
+	expected := []uint8{255, 97, 133, 255}
+	assert.EqualValues(expected, bmp.Img.Pix)
 
 	// Saturation
 	blop.Set(Saturation)
-	draw.Draw(src, rect, &image.Uniform{frontColor}, image.Point{}, draw.Src)
-	draw.Draw(dst, rect, &image.Uniform{backColor}, image.Point{}, draw.Src)
-	imop.Draw(bmp, src, dst, blop)
+	draw.Draw(source, rect, &image.Uniform{frontColor}, image.Point{}, draw.Src)
+	draw.Draw(backdrop, rect, &image.Uniform{backColor}, image.Point{}, draw.Src)
+	imop.Draw(bmp, source, backdrop, blop)
 
-	exp = []uint8{233, 126, 39, 255}
-	assert.EqualValues(exp, bmp.Img.Pix)
+	expected = []uint8{233, 126, 39, 255}
+	assert.EqualValues(expected, bmp.Img.Pix)
 
 	// Color
 	blop.Set(ColorMode)
-	draw.Draw(src, rect, &image.Uniform{frontColor}, image.Point{}, draw.Src)
-	draw.Draw(dst, rect, &image.Uniform{backColor}, image.Point{}, draw.Src)
-	imop.Draw(bmp, src, dst, blop)
+	draw.Draw(source, rect, &image.Uniform{frontColor}, image.Point{}, draw.Src)
+	draw.Draw(backdrop, rect, &image.Uniform{backColor}, image.Point{}, draw.Src)
+	imop.Draw(bmp, source, backdrop, blop)
 
-	exp = []uint8{255, 97, 133, 255}
-	assert.EqualValues(exp, bmp.Img.Pix)
+	expected = []uint8{255, 97, 133, 255}
+	assert.EqualValues(expected, bmp.Img.Pix)
 
 	// Luminosity
 	blop.Set(Luminosity)
-	draw.Draw(src, rect, &image.Uniform{frontColor}, image.Point{}, draw.Src)
-	draw.Draw(dst, rect, &image.Uniform{backColor}, image.Point{}, draw.Src)
-	imop.Draw(bmp, src, dst, blop)
+	draw.Draw(source, rect, &image.Uniform{frontColor}, image.Point{}, draw.Src)
+	draw.Draw(backdrop, rect, &image.Uniform{backColor}, image.Point{}, draw.Src)
+	imop.Draw(bmp, source, backdrop, blop)
 
-	exp = []uint8{148, 66, 0, 255}
-	assert.EqualValues(exp, bmp.Img.Pix)
+	expected = []uint8{148, 66, 0, 255}
+	assert.EqualValues(expected, bmp.Img.Pix)
 }
