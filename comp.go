@@ -15,7 +15,7 @@ import (
 const (
 	Clear   = "clear"
 	Copy    = "copy"
-	Dest    = "dst"
+	Dst     = "dst"
 	SrcOver = "src_over"
 	DstOver = "dst_over"
 	SrcIn   = "src_in"
@@ -49,11 +49,11 @@ func NewBitmap(rect image.Rectangle) *Bitmap {
 // InitOp initializes a new composition operation.
 func InitOp() *Comp {
 	return &Comp{
-		CurrentOp: Copy,
+		CurrentOp: SrcOver,
 		Ops: []string{
 			Clear,
 			Copy,
-			Dest,
+			Dst,
 			SrcOver,
 			DstOver,
 			SrcIn,
@@ -120,7 +120,7 @@ func (op *Comp) Draw(bitmap *Bitmap, src, dst *image.NRGBA, bl *Blend) {
 				gn = asn * gsn
 				bn = asn * bsn
 				an = asn * asn
-			case Dest:
+			case Dst:
 				rn = abn * rbn
 				gn = abn * gbn
 				bn = abn * bbn
