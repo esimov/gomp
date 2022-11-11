@@ -1,6 +1,7 @@
 # gomp
 ![Coverage](https://img.shields.io/badge/Coverage-73.3%25-brightgreen)
 [![CI](https://github.com/esimov/gomp/actions/workflows/ci.yml/badge.svg)](https://github.com/esimov/gomp/actions/workflows/ci.yml)
+[![release](https://img.shields.io/badge/release-v1.0.1-blue.svg)](https://github.com/esimov/gomp/releases/tag/v1.0.1)
 [![license](https://img.shields.io/github/license/esimov/pigo)](./LICENSE)
 
 Go library for image blending and alpha compositing using advanced features like the Porter-Duff operator and blending modes.
