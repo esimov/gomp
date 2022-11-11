@@ -1,4 +1,5 @@
 # gomp
+![Coverage](https://img.shields.io/badge/Coverage-73.3%25-brightgreen)
 [![CI](https://github.com/esimov/gomp/actions/workflows/ci.yml/badge.svg)](https://github.com/esimov/gomp/actions/workflows/ci.yml)
 [![license](https://img.shields.io/github/license/esimov/pigo)](./LICENSE)
 
