@@ -6,6 +6,8 @@
 package gomp
 
 import (
+	"fmt"
+	"math"
 	"sort"
 )
 
@@ -30,10 +32,10 @@ const (
 	Luminosity = "luminosity"
 )
 
-// Blend holds the currently active blend mode.
+// Blend struct contains the currently active blend mode and all the supported blend modes.
 type Blend struct {
-	Mode  string
-	Modes []string
+	Current string
+	Modes   []string
 }
 
 // Color represents the RGB channel of a specific color.
@@ -66,18 +68,17 @@ func NewBlend() *Blend {
 }
 
 // Set activate one of the supported blend modes.
-func (bl *Blend) Set(blendType string) {
+func (bl *Blend) Set(blendType string) error {
 	if Contains(bl.Modes, blendType) {
-		bl.Mode = blendType
+		bl.Current = blendType
+		return nil
 	}
+	return fmt.Errorf("unsupported blend mode")
 }
 
 // Get returns the active blend mode.
 func (bl *Blend) Get() string {
-	if len(bl.Mode) > 0 {
-		return bl.Mode
-	}
-	return ""
+	return bl.Current
 }
 
 // Lum gets the luminosity of a color.
@@ -88,15 +89,15 @@ func (bl *Blend) Lum(rgb Color) float64 {
 // SetLum set the luminosity on a color.
 func (bl *Blend) SetLum(rgb Color, l float64) Color {
 	delta := l - bl.Lum(rgb)
-	return bl.Clip(Color{
+	return bl.clip(Color{
 		rgb.R + delta,
 		rgb.G + delta,
 		rgb.B + delta,
 	})
 }
 
-// Clip clips the channels of a color between certain min and max values.
-func (bl *Blend) Clip(rgb Color) Color {
+// clip clips the channels of a color between certain min and max values.
+func (bl *Blend) clip(rgb Color) Color {
 	r, g, b := rgb.R, rgb.G, rgb.B
 
 	l := bl.Lum(rgb)
@@ -158,4 +159,19 @@ func (bl *Blend) SetSat(rgb Color, s float64) Color {
 		G: color["G"],
 		B: color["B"],
 	}
+}
+
+// Applies the alpha blending formula for a blend operation.
+// See: https://www.w3.org/TR/compositing-1/#blending
+func (bl *Blend) AlphaCompose(
+	backdropAlpha,
+	sourceAlpha,
+	compositeAlpha,
+	backdropColor,
+	sourceColor,
+	compositeColor float64,
+) float64 {
+	return ((1 - sourceAlpha/compositeAlpha) * backdropColor) +
+		(sourceAlpha / compositeAlpha *
+			math.Round((1-backdropAlpha)*sourceColor+backdropAlpha*compositeColor))
 }
