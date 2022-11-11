@@ -22,5 +22,5 @@ func TestBlend(t *testing.T) {
 
 	rgb = Color{R: 0, G: 0, B: 0}
 	lum = op.Lum(rgb)
-	assert.Equal(0, lum)
+	assert.Equal(0.0, lum)
 }
