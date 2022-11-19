@@ -17,7 +17,7 @@ When dealing with image composition this is simply not enough. This library is m
 | ![compositing](https://github.com/esimov/gomp/blob/master/examples/comp/composite.png) |
 
 ### Blending modes
-For convenience, this package implements also some of the most used blending modes in Photoshop. Similarly to the alpha compositing, blending modes defines the result of compositing a source and a destination but without being constrained to the alpha channel. The implementation follows the blending formulas presented in the W3C document: [Compositing and Blending](https://www.w3.org/TR/compositing-1/#blending). These blending modes are not covered by Porter and Duff, but have been included in this package for convenience.
+For convenience, this package implements also some of the most used blending modes in Photoshop. Similarly to the alpha compositing, blending modes defines the result of compositing a source and a destination but without being constrained to the alpha channel. The implementation follows the blending formulas presented in the W3C document: [Compositing and Blending](https://www.w3.org/TR/compositing-1/#blending). These blending modes are not covered by Porter and Duff, but have been included into this package for convenience.
 
 | Blending modes
 |:--:
