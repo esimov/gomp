@@ -9,7 +9,7 @@ Go library for image blending and alpha compositing using advanced features like
 
 ## About
 
-The core [`image/draw`](https://pkg.go.dev/image/draw) package defines only one operation: drawing a source image onto the destination image, through an optional image mask. This is performed pixel by pixel and it's based on the classic "[Compositing Digital Images](https://dl.acm.org/doi/pdf/10.1145/964965.808606)" paper by Porter and Duff. This paper presented **12 different** composition operation, but the Draw method uses only two of them: `source over destination` and `source`. 
+The reason why this package has been developed is because the [**`image/draw`**](https://pkg.go.dev/image/draw) package from Go's standard library defines only one operation: drawing a source image onto the destination image, through an optional image mask. This is performed pixel by pixel and it's based on the classic "[Compositing Digital Images](https://dl.acm.org/doi/pdf/10.1145/964965.808606)" paper by Porter and Duff. This paper presented **12 different** composition operation, but the Draw method uses only two of them: `source over destination` and `source`. 
 
 When dealing with image composition this is simply not enough. This library is meant to be overcome this deficiency and integrates the missing operators.
 
