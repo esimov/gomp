@@ -1,22 +1,24 @@
 # gomp
 ![Coverage](https://img.shields.io/badge/Coverage-73.3%25-brightgreen)
 [![CI](https://github.com/esimov/gomp/actions/workflows/ci.yml/badge.svg)](https://github.com/esimov/gomp/actions/workflows/ci.yml)
-[![license](https://img.shields.io/github/license/esimov/pigo)](./LICENSE)
+[![go.dev reference](https://img.shields.io/badge/pkg.go.dev-reference-007d9c?logo=go)](https://pkg.go.dev/github.com/esimov/gomp)
+[![release](https://img.shields.io/badge/release-v1.0.1-blue.svg)](https://github.com/esimov/gomp/releases/tag/v1.0.1)
+[![license](https://img.shields.io/github/license/esimov/gomp)](./LICENSE)
 
 Go library for image blending and alpha compositing using advanced features like the Porter-Duff operator and blending modes.
 
 ## About
 
-The core [`image/draw`](https://pkg.go.dev/image/draw) package defines only one operation: drawing a source image onto the destination image, through an optional image mask. This is performed pixel by pixel and it's based on the classic "[Compositing Digital Images](https://dl.acm.org/doi/pdf/10.1145/964965.808606)" paper by Porter and Duff. This paper presented **12 different** composition operation, but the Draw method uses only two of them: `source over destination` and `source`. 
+The reason why this package has been developed is because the [**`image/draw`**](https://pkg.go.dev/image/draw) package from Go's standard library defines only one operation: drawing a source image onto the destination image, through an optional image mask. This is performed pixel by pixel and it's based on the classic "[Compositing Digital Images](https://dl.acm.org/doi/pdf/10.1145/964965.808606)" paper by Porter and Duff. This paper presented **12 different** composition operation, but the Draw method uses only two of them: `source over destination` and `source`. 
 
-When dealing with image composition this is simply not enough. This library is meant to be overcome this deficiency and integrates the missing operators.
+When dealing with image composition this is simply not enough. This library aims to overcome this deficiency by integrating the missing operators.
 
 | Alpha compositing
 |:--:
 | ![compositing](https://github.com/esimov/gomp/blob/master/examples/comp/composite.png) |
 
 ### Blending modes
-For convenience, this package implements also some of the most used blending modes in Photoshop. Similarly to the alpha compositing, blending modes defines the result of compositing a source and a destination but without being constrained to the alpha channel. The implementation follows the blending formulas presented in the W3C document: [Compositing and Blending](https://www.w3.org/TR/compositing-1/#blending). These blending modes are not covered by Porter and Duff, but have been included in this package for convenience.
+For convenience, this package implements also some of the most used blending modes in Photoshop. Similarly to the alpha compositing, blending modes defines the result of compositing a source and a destination but without being constrained to the alpha channel. The implementation follows the blending formulas presented in the W3C document: [Compositing and Blending](https://www.w3.org/TR/compositing-1/#blending). These blending modes are not covered by Porter and Duff, but have been included into this package for convenience.
 
 | Blending modes
 |:--:
