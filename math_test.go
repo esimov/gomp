@@ -16,5 +16,7 @@ func TestMath(t *testing.T) {
 
 	assert.Empty(Contains(input, -1))
 	assert.Equal(true, Contains(input, 0))
+	assert.Equal(true, Contains(input, 5))
+	assert.Equal(true, Contains(input, 10))
 	assert.NotEqual(true, Contains(input, 100))
 }

@@ -24,7 +24,7 @@ func TestComp_Basic(t *testing.T) {
 	assert.Equal(Dst, op.Get())
 }
 
-func TestComp_Ops(t *testing.T) {
+func TestComp_Draw(t *testing.T) {
 	assert := assert.New(t)
 	imop := InitOp()
 
@@ -34,6 +34,8 @@ func TestComp_Ops(t *testing.T) {
 
 	rect := image.Rect(0, 0, 10, 10)
 	bmp := NewBitmap(rect)
+	assert.Greater(bmp.Img.Bounds().Max.X, 0)
+	assert.Greater(bmp.Img.Bounds().Max.Y, 0)
 	source := image.NewNRGBA(rect)
 	backdrop := image.NewNRGBA(rect)
 

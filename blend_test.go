@@ -33,11 +33,11 @@ func TestBlend_Basic(t *testing.T) {
 	lum = op.Lum(rgb)
 	assert.Equal(127.0, lum)
 
-	frontground := Color{R: 0xff, G: 0xff, B: 0xff}
+	foreground := Color{R: 0xff, G: 0xff, B: 0xff}
 	background := Color{R: 0, G: 0, B: 0}
 
-	assert.Equal(0.0, op.Sat(frontground))
-	sat := op.SetSat(background, op.Sat(frontground))
+	assert.Equal(0.0, op.Sat(foreground))
+	sat := op.SetSat(background, op.Sat(foreground))
 	assert.Equal(Color{R: 0, G: 0, B: 0}, sat)
 }
 
