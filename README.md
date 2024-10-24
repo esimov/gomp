@@ -1,7 +1,6 @@
 # gomp
 [![CI](https://github.com/esimov/gomp/actions/workflows/ci.yml/badge.svg)](https://github.com/esimov/gomp/actions/workflows/ci.yml)
 [![Go Report Card](https://goreportcard.com/badge/github.com/esimov/gomp)](https://goreportcard.com/report/github.com/esimov/gomp)
-![Coverage](https://img.shields.io/badge/Coverage-55.2%25-yellow)
 [![go.dev reference](https://img.shields.io/badge/pkg.go.dev-reference-007d9c?logo=go)](https://pkg.go.dev/github.com/esimov/gomp)
 [![release](https://img.shields.io/badge/release-v1.0.2-blue.svg)](https://github.com/esimov/gomp/releases/tag/v1.0.2)
 [![license](https://img.shields.io/github/license/esimov/gomp)](./LICENSE)
@@ -10,7 +9,7 @@ Go library for image blending and alpha compositing using advanced features like
 
 ## About
 
-The reason why this package has been developed is because the [**`image/draw`**](https://pkg.go.dev/image/draw) package from Go's standard library defines only one operation: drawing a source image onto the destination image, through an optional image mask. This is performed pixel by pixel and it's based on the classic "[Compositing Digital Images](https://dl.acm.org/doi/pdf/10.1145/964965.808606)" paper by Porter and Duff. This paper presented **12 different** composition operation, but the Draw method uses only two of them: `source over destination` and `source`. 
+The reason why this package has been developed is because the [**`image/draw`**](https://pkg.go.dev/image/draw) package from Go's standard library defines only one operation: drawing a source image onto the destination image, through an optional image mask. This is performed pixel by pixel and it's based on the classic "[Compositing Digital Images](https://dl.acm.org/doi/pdf/10.1145/964965.808606)" paper by Porter and Duff. This paper presented **12 different** composition operation, but the Draw method uses only two of them: `source over destination` and `source`.
 
 When dealing with image composition this is simply not enough. This library aims to overcome this deficiency by integrating the missing operators.
 
@@ -62,8 +61,8 @@ imop.Draw(bmp, srcImg, bgr, blop)
 ```
 
 ### Operators
-      
-| Image compositing | Separable blending modes | Non-separable blending modes 
+
+| Image compositing | Separable blending modes | Non-separable blending modes
 |:--:|:--:|:--:
 | `Clear` | `Normal` | `Hue` |
 | `Copy` | `Darken` | `Saturation` |
