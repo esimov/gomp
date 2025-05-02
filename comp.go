@@ -71,7 +71,7 @@ func InitOp() *Composite {
 
 // Set changes the current composition operation.
 func (op *Composite) Set(compType CompType) error {
-	if Contains(op.Ops, compType) {
+	if contains(op.Ops, compType) {
 		op.CurrentOp = compType
 		return nil
 	}
@@ -213,15 +213,15 @@ func (op *Composite) Draw(bitmap *Bitmap, src, dst *image.NRGBA, blend *Blend) {
 				case Normal:
 					rn, gn, bn, an = rsn, gsn, bsn, asn
 				case Darken:
-					rn = Min(rsn, rbn)
-					gn = Min(gsn, gbn)
-					bn = Min(bsn, bbn)
-					an = Min(asn, abn)
+					rn = min(rsn, rbn)
+					gn = min(gsn, gbn)
+					bn = min(bsn, bbn)
+					an = min(asn, abn)
 				case Lighten:
-					rn = Max(rsn, rbn)
-					gn = Max(gsn, gbn)
-					bn = Max(bsn, bbn)
-					an = Max(asn, abn)
+					rn = max(rsn, rbn)
+					gn = max(gsn, gbn)
+					bn = max(bsn, bbn)
+					an = max(asn, abn)
 				case Screen:
 					rn = 1 - (1-rsn)*(1-rbn)
 					gn = 1 - (1-gsn)*(1-gbn)
@@ -354,56 +354,56 @@ func (op *Composite) Draw(bitmap *Bitmap, src, dst *image.NRGBA, blend *Blend) {
 					}
 				case ColorDodge:
 					if rsn < 1 {
-						rn = Min(1, rbn/(1-rsn))
+						rn = min(1, rbn/(1-rsn))
 					} else if rsn == 1 {
 						rn = 1
 					}
 
 					if gsn < 1 {
-						gn = Min(1, gbn/(1-gsn))
+						gn = min(1, gbn/(1-gsn))
 					} else if gsn == 1 {
 						gn = 1
 					}
 
 					if bsn < 1 {
-						bn = Min(1, bbn/(1-bsn))
+						bn = min(1, bbn/(1-bsn))
 					} else if bsn == 1 {
 						bn = 1
 					}
 
 					if asn < 1 {
-						an = Min(1, abn/(1-asn))
+						an = min(1, abn/(1-asn))
 					} else if asn == 1 {
 						an = 1
 					}
 				case ColorBurn:
 					if rsn > 0 {
-						rn = 1 - Min(1, (1-rbn)/rsn)
+						rn = 1 - min(1, (1-rbn)/rsn)
 					} else if rsn == 0 {
 						rn = 0
 					}
 
 					if gsn > 0 {
-						gn = 1 - Min(1, (1-gbn)/gsn)
+						gn = 1 - min(1, (1-gbn)/gsn)
 					} else if gsn == 0 {
 						gn = 0
 					}
 
 					if bsn > 0 {
-						bn = 1 - Min(1, (1-bbn)/bsn)
+						bn = 1 - min(1, (1-bbn)/bsn)
 					} else if bsn == 0 {
 						bn = 0
 					}
 
 					if asn > 0 {
-						an = 1 - Min(1, (1-abn)/asn)
+						an = 1 - min(1, (1-abn)/asn)
 					} else if asn == 0 {
 						an = 0
 					}
 				case Difference:
-					rn = Abs(rbn - rsn)
-					gn = Abs(gbn - gsn)
-					bn = Abs(bbn - bsn)
+					rn = abs(rbn - rsn)
+					gn = abs(gbn - gsn)
+					bn = abs(bbn - bsn)
 					an = 1
 				case Exclusion:
 					rn = rsn + rbn - 2*rsn*rbn

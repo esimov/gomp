@@ -59,7 +59,7 @@ func NewBlend() *Blend {
 
 // Set activate one of the supported blend modes.
 func (bl *Blend) Set(blendType BlendType) error {
-	if Contains(bl.Modes, blendType) {
+	if contains(bl.Modes, blendType) {
 		bl.CurrentOp = blendType
 		return nil
 	}
@@ -92,8 +92,8 @@ func (bl *Blend) clip(rgb Color) Color {
 	r, g, b := rgb.R, rgb.G, rgb.B
 
 	l := bl.Lum(rgb)
-	min := Min(r, g, b)
-	max := Max(r, g, b)
+	min := min(r, g, b)
+	max := max(r, g, b)
 
 	if min < 0 {
 		r = l + (((r - l) * l) / (l - min))
@@ -111,7 +111,7 @@ func (bl *Blend) clip(rgb Color) Color {
 
 // Sat gets the saturation of a color.
 func (bl *Blend) Sat(rgb Color) float64 {
-	return Max(rgb.R, rgb.G, rgb.B) - Min(rgb.R, rgb.G, rgb.B)
+	return max(rgb.R, rgb.G, rgb.B) - min(rgb.R, rgb.G, rgb.B)
 }
 
 // channel is a key/value struct pair used for sorting the color channels
