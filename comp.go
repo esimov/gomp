@@ -12,19 +12,21 @@ import (
 	"math"
 )
 
+type CompType int
+
 const (
-	Clear   = "clear"
-	Copy    = "copy"
-	Dst     = "dst"
-	SrcOver = "src_over"
-	DstOver = "dst_over"
-	SrcIn   = "src_in"
-	DstIn   = "dst_in"
-	SrcOut  = "src_out"
-	DstOut  = "dst_out"
-	SrcAtop = "src_atop"
-	DstAtop = "dst_atop"
-	Xor     = "xor"
+	Clear CompType = iota
+	Copy
+	Dst
+	SrcOver
+	DstOver
+	SrcIn
+	DstIn
+	SrcOut
+	DstOut
+	SrcAtop
+	DstAtop
+	Xor
 )
 
 // Bitmap holds an image type as a placeholder for the Porter-Duff composition
@@ -33,10 +35,10 @@ type Bitmap struct {
 	Img *image.NRGBA
 }
 
-// Comp struct contains the currently active composition operation and all the supported operations.
-type Comp struct {
-	CurrentOp string
-	Ops       []string
+// Composite struct contains the currently active composition operation and all the supported operations.
+type Composite struct {
+	CurrentOp CompType
+	Ops       []CompType
 }
 
 // NewBitmap initializes a new Bitmap.
@@ -47,10 +49,10 @@ func NewBitmap(rect image.Rectangle) *Bitmap {
 }
 
 // InitOp initializes a new composition operation.
-func InitOp() *Comp {
-	return &Comp{
+func InitOp() *Composite {
+	return &Composite{
 		CurrentOp: SrcOver,
-		Ops: []string{
+		Ops: []CompType{
 			Clear,
 			Copy,
 			Dst,
@@ -68,23 +70,24 @@ func InitOp() *Comp {
 }
 
 // Set changes the current composition operation.
-func (op *Comp) Set(cop string) error {
-	if Contains(op.Ops, cop) {
-		op.CurrentOp = cop
+func (op *Composite) Set(compType CompType) error {
+	if Contains(op.Ops, compType) {
+		op.CurrentOp = compType
 		return nil
 	}
+
 	return fmt.Errorf("unsupported composition operation")
 }
 
 // Set changes the current composition operation.
-func (op *Comp) Get() string {
+func (op *Composite) Get() CompType {
 	return op.CurrentOp
 }
 
 // Draw applies the currently active Ported-Duff composition operation formula,
 // taking as parameter the source and the destination image and draws the result into the bitmap.
 // If a blend mode is activated it will plug in the alpha blending formula also into the equation.
-func (op *Comp) Draw(bitmap *Bitmap, src, dst *image.NRGBA, bl *Blend) {
+func (op *Composite) Draw(bitmap *Bitmap, src, dst *image.NRGBA, blend *Blend) {
 	dx, dy := src.Bounds().Dx(), src.Bounds().Dy()
 
 	var (
@@ -185,7 +188,7 @@ func (op *Comp) Draw(bitmap *Bitmap, src, dst *image.NRGBA, bl *Blend) {
 			})
 
 			// applying the blending mode
-			if bl != nil {
+			if blend != nil {
 				rn, gn, bn, an = 0, 0, 0, 0 // reset the colors
 				r1, g1, b1, a1 = src.At(x, y).RGBA()
 				r2, g2, b2, a2 = dst.At(x, y).RGBA()
@@ -206,7 +209,7 @@ func (op *Comp) Draw(bitmap *Bitmap, src, dst *image.NRGBA, bl *Blend) {
 				foreground := Color{R: rsn, G: gsn, B: bsn}
 				background := Color{R: rbn, G: gbn, B: bbn}
 
-				switch bl.Current {
+				switch blend.CurrentOp {
 				case Normal:
 					rn, gn, bn, an = rsn, gsn, bsn, asn
 				case Darken:
@@ -411,57 +414,88 @@ func (op *Comp) Draw(bitmap *Bitmap, src, dst *image.NRGBA, bl *Blend) {
 				// Non-separable blend modes
 				// https://www.w3.org/TR/compositing-1/#blendingnonseparable
 				case Hue:
-					sat := bl.SetSat(background, bl.Sat(foreground))
-					rgb := bl.SetLum(sat, bl.Lum(foreground))
+					sat := blend.SetSat(background, blend.Sat(foreground))
+					rgb := blend.SetLum(sat, blend.Lum(foreground))
 
 					a := asn + abn - asn*abn
-					rn = bl.AlphaCompose(abn, asn, a, rbn*255, rsn*255, rgb.R*255)
-					gn = bl.AlphaCompose(abn, asn, a, gbn*255, gsn*255, rgb.G*255)
-					bn = bl.AlphaCompose(abn, asn, a, bbn*255, bsn*255, rgb.B*255)
+					rn = blend.AlphaCompose(abn, asn, a, rbn*255, rsn*255, rgb.R*255)
+					gn = blend.AlphaCompose(abn, asn, a, gbn*255, gsn*255, rgb.G*255)
+					bn = blend.AlphaCompose(abn, asn, a, bbn*255, bsn*255, rgb.B*255)
 					rn, gn, bn = rn/255, gn/255, bn/255
 					an = a
 				case Saturation:
-					sat := bl.SetSat(foreground, bl.Sat(background))
-					rgb := bl.SetLum(sat, bl.Lum(foreground))
+					sat := blend.SetSat(foreground, blend.Sat(background))
+					rgb := blend.SetLum(sat, blend.Lum(foreground))
 
 					a := asn + abn - asn*abn
-					rn = bl.AlphaCompose(abn, asn, a, rbn*255, rsn*255, rgb.R*255)
-					gn = bl.AlphaCompose(abn, asn, a, gbn*255, gsn*255, rgb.G*255)
-					bn = bl.AlphaCompose(abn, asn, a, bbn*255, bsn*255, rgb.B*255)
+					rn = blend.AlphaCompose(abn, asn, a, rbn*255, rsn*255, rgb.R*255)
+					gn = blend.AlphaCompose(abn, asn, a, gbn*255, gsn*255, rgb.G*255)
+					bn = blend.AlphaCompose(abn, asn, a, bbn*255, bsn*255, rgb.B*255)
 					rn, gn, bn = rn/255, gn/255, bn/255
 					an = a
 				case ColorMode:
-					rgb := bl.SetLum(background, bl.Lum(foreground))
+					rgb := blend.SetLum(background, blend.Lum(foreground))
 
 					a := asn + abn - asn*abn
-					rn = bl.AlphaCompose(abn, asn, a, rbn*255, rsn*255, rgb.R*255)
-					gn = bl.AlphaCompose(abn, asn, a, gbn*255, gsn*255, rgb.G*255)
-					bn = bl.AlphaCompose(abn, asn, a, bbn*255, bsn*255, rgb.B*255)
+					rn = blend.AlphaCompose(abn, asn, a, rbn*255, rsn*255, rgb.R*255)
+					gn = blend.AlphaCompose(abn, asn, a, gbn*255, gsn*255, rgb.G*255)
+					bn = blend.AlphaCompose(abn, asn, a, bbn*255, bsn*255, rgb.B*255)
 					rn, gn, bn = rn/255, gn/255, bn/255
 					an = a
 				case Luminosity:
-					rgb := bl.SetLum(foreground, bl.Lum(background))
+					rgb := blend.SetLum(foreground, blend.Lum(background))
 
 					a := asn + abn - asn*abn
-					rn = bl.AlphaCompose(abn, asn, a, rbn*255, rsn*255, rgb.R*255)
-					gn = bl.AlphaCompose(abn, asn, a, gbn*255, gsn*255, rgb.G*255)
-					bn = bl.AlphaCompose(abn, asn, a, bbn*255, bsn*255, rgb.B*255)
+					rn = blend.AlphaCompose(abn, asn, a, rbn*255, rsn*255, rgb.R*255)
+					gn = blend.AlphaCompose(abn, asn, a, gbn*255, gsn*255, rgb.G*255)
+					bn = blend.AlphaCompose(abn, asn, a, bbn*255, bsn*255, rgb.B*255)
 					rn, gn, bn = rn/255, gn/255, bn/255
 					an = a
 				}
+
+				r = uint32(rn * 255)
+				g = uint32(gn * 255)
+				b = uint32(bn * 255)
+				a = uint32(an * 255)
+
+				bitmap.Img.Set(x, y, color.NRGBA{
+					R: uint8(r),
+					G: uint8(g),
+					B: uint8(b),
+					A: uint8(a),
+				})
 			}
-
-			r = uint32(rn * 255)
-			g = uint32(gn * 255)
-			b = uint32(bn * 255)
-			a = uint32(an * 255)
-
-			bitmap.Img.Set(x, y, color.NRGBA{
-				R: uint8(r),
-				G: uint8(g),
-				B: uint8(b),
-				A: uint8(a),
-			})
 		}
 	}
+}
+
+func (op *Composite) ToString(compType CompType) string {
+	switch compType {
+	case Clear:
+		return "clear"
+	case Copy:
+		return "copy"
+	case Dst:
+		return "dst"
+	case SrcOver:
+		return "srcOver"
+	case DstOver:
+		return "dstOver"
+	case SrcIn:
+		return "srcIn"
+	case DstIn:
+		return "dstIn"
+	case SrcOut:
+		return "srcOut"
+	case DstOut:
+		return "dstOut"
+	case SrcAtop:
+		return "srcAtop"
+	case DstAtop:
+		return "dstAtop"
+	case Xor:
+		return "xor"
+	}
+
+	return ""
 }

@@ -32,8 +32,8 @@ func main() {
 	col := color.RGBA{R: 0xf4, G: 0x7a, B: 0x03, A: 0xff}
 	draw.Draw(bgr, bgr.Bounds(), &image.Uniform{col}, image.Point{}, draw.Src)
 
-	imop := gomp.InitOp()
-	blop := gomp.NewBlend()
+	compOp := gomp.InitOp()
+	blendOp := gomp.NewBlend()
 
 	dc := gg.NewContext(1024, 1024)
 	dc.Clear()
@@ -56,7 +56,7 @@ func main() {
 	size := 256
 	cellSize := 32
 
-	for _, op := range blop.Modes {
+	for _, op := range blendOp.Modes {
 		if gridX == size*4 {
 			gridY += size
 			gridX = 0
@@ -77,12 +77,12 @@ func main() {
 			i++
 		}
 
-		blop.Set(op)
-		imop.Set(gomp.SrcOver)
+		blendOp.Set(op)
+		compOp.Set(gomp.SrcOver)
 		bmp := gomp.NewBitmap(image.Rect(0, 0, size, size))
-		imop.Draw(bmp, srcImg, bgr, blop)
+		compOp.Draw(bmp, srcImg, bgr, blendOp)
 
-		dx, _ := dc.MeasureString(op)
+		dx, _ := dc.MeasureString(blendOp.ToString(op))
 		dc.DrawImage(bmp.Img, gridX, gridY)
 		dc.DrawRectangle(float64(gridX), float64(gridY), float64(gridX+size), float64(gridY+size))
 		dc.SetRGB(0.7, 0.7, 0.7)
@@ -90,7 +90,7 @@ func main() {
 
 		dc.SetRGB(1, 1, 1)
 		dc.Stroke()
-		opName := strings.ReplaceAll(op, "_", " ")
+		opName := strings.ReplaceAll(blendOp.ToString(op), "_", " ")
 		dc.DrawString(opName, float64(gridX)+(float64(size)/2-dx/2), float64(gridY-5+size))
 
 		gridX += size

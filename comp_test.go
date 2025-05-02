@@ -13,8 +13,6 @@ func TestComp_Basic(t *testing.T) {
 	assert := assert.New(t)
 
 	op := InitOp()
-	err := op.Set("unsupported_composite_operation")
-	assert.Error(err)
 
 	op.Set(Clear)
 	assert.Equal(Clear, op.Get())

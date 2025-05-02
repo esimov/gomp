@@ -11,31 +11,33 @@ import (
 	"sort"
 )
 
+type BlendType int
+
 const (
-	Normal     = "normal"
-	Darken     = "darken"
-	Lighten    = "lighten"
-	Multiply   = "multiply"
-	Screen     = "screen"
-	Overlay    = "overlay"
-	SoftLight  = "soft_light"
-	HardLight  = "hard_light"
-	ColorDodge = "color_dodge"
-	ColorBurn  = "color_burn"
-	Difference = "difference"
-	Exclusion  = "exclusion"
+	Normal BlendType = iota
+	Darken
+	Lighten
+	Multiply
+	Screen
+	Overlay
+	SoftLight
+	HardLight
+	ColorDodge
+	ColorBurn
+	Difference
+	Exclusion
 
 	// Non-separable blend modes
-	Hue        = "hue"
-	Saturation = "saturation"
-	ColorMode  = "color"
-	Luminosity = "luminosity"
+	Hue
+	Saturation
+	ColorMode
+	Luminosity
 )
 
 // Blend struct contains the currently active blend mode and all the supported blend modes.
 type Blend struct {
-	Current string
-	Modes   []string
+	CurrentOp BlendType
+	Modes     []BlendType
 }
 
 // Color represents the RGB channel of a specific color.
@@ -43,42 +45,31 @@ type Color struct {
 	R, G, B float64
 }
 
-// NewBlend initializes a new Blend.
+// NewBlend intantiates a new Blend.
 func NewBlend() *Blend {
 	return &Blend{
-		Modes: []string{
-			Normal,
-			Darken,
-			Lighten,
-			Multiply,
-			Screen,
-			Overlay,
-			SoftLight,
-			HardLight,
-			ColorDodge,
-			ColorBurn,
-			Difference,
-			Exclusion,
-			Hue,
-			Saturation,
-			ColorMode,
-			Luminosity,
+		Modes: []BlendType{
+			Normal, Darken, Lighten, Multiply,
+			Screen, Overlay, SoftLight, HardLight,
+			ColorDodge, ColorBurn, Difference, Exclusion,
+			Hue, Saturation, ColorMode, Luminosity,
 		},
 	}
 }
 
 // Set activate one of the supported blend modes.
-func (bl *Blend) Set(blendType string) error {
+func (bl *Blend) Set(blendType BlendType) error {
 	if Contains(bl.Modes, blendType) {
-		bl.Current = blendType
+		bl.CurrentOp = blendType
 		return nil
 	}
+
 	return fmt.Errorf("unsupported blend mode")
 }
 
 // Get returns the active blend mode.
-func (bl *Blend) Get() string {
-	return bl.Current
+func (bl *Blend) Get() BlendType {
+	return bl.CurrentOp
 }
 
 // Lum gets the luminosity of a color.
@@ -142,6 +133,7 @@ func (bl *Blend) SetSat(rgb Color, s float64) Color {
 	for k, v := range color {
 		channels = append(channels, channel{k, v})
 	}
+
 	// Sort the color channels based on their values.
 	sort.Slice(channels, func(i, j int) bool { return channels[i].val < channels[j].val })
 	minChan, midChan, maxChan := channels[0].key, channels[1].key, channels[2].key
@@ -174,4 +166,43 @@ func (bl *Blend) AlphaCompose(
 	return ((1 - sourceAlpha/compositeAlpha) * backdropColor) +
 		(sourceAlpha / compositeAlpha *
 			math.Round((1-backdropAlpha)*sourceColor+backdropAlpha*compositeColor))
+}
+
+func (bl *Blend) ToString(blendType BlendType) string {
+	switch blendType {
+	case Normal:
+		return "normal"
+	case Darken:
+		return "darken"
+	case Lighten:
+		return "lighten"
+	case Multiply:
+		return "multiply"
+	case Screen:
+		return "screen"
+	case Overlay:
+		return "overlay"
+	case SoftLight:
+		return "softLight"
+	case HardLight:
+		return "hardLight"
+	case ColorDodge:
+		return "colorDodge"
+	case ColorBurn:
+		return "colorBurn"
+	case Difference:
+		return "difference"
+	case Exclusion:
+		return "exclusion"
+	case Hue:
+		return "hue"
+	case Saturation:
+		return "saturation"
+	case ColorMode:
+		return "colorMode"
+	case Luminosity:
+		return "luminosity"
+	}
+
+	return ""
 }
